@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mercedes Fahrkosten & Spar Tracker</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d0f12">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fahrkosten">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<style>
+:root{
+  --bg:#0d0f12; --card:#1a1d22; --card2:#20242a; --line:#2c3038;
+  --silver:#c7ccd4; --silver-dim:#8a919c; --accent:#5ac8fa; --green:#3ddc84;
+  --red:#ff6b6b; --gold:#e8c468; --text:#eef0f2; --sub:#8f97a3;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
+body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px));min-height:100vh;}
+.wrap{max-width:520px;margin:0 auto;padding:14px 14px 24px;}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--sub);margin:22px 0 10px;}
+.card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.big{font-size:26px;font-weight:700;}
+.lbl{font-size:12px;color:var(--sub);margin-bottom:4px;}
+.hero{background:radial-gradient(120% 100% at 50% 0%,#2a3038,#101215 68%);border-radius:20px;padding:18px 10px 10px;position:relative;overflow:hidden;border:1px solid var(--line);}
+.hero::after{content:'';position:absolute;left:10%;right:10%;bottom:10px;height:22px;background:radial-gradient(ellipse at center,rgba(0,0,0,.55) 0%,rgba(0,0,0,0) 75%);pointer-events:none;}
+.hero .car{max-height:32vh;display:flex;align-items:center;justify-content:center;}
+.hero svg,.hero img{width:100%;height:auto;max-height:32vh;object-fit:contain;display:block}
+.hero img{filter:drop-shadow(0 22px 18px rgba(0,0,0,.6)) drop-shadow(0 2px 10px rgba(120,140,170,.15));}
+.hero .car{opacity:0;transform:translateY(10px);animation:driveIn .6s ease-out forwards;}
+@keyframes driveIn{to{opacity:1;transform:translateY(0)}}
+.hero .caption{text-align:center;margin-top:6px}
+.hero .caption b{font-size:16px}
+.hero .caption span{display:block;color:var(--sub);font-size:12px;margin-top:2px;letter-spacing:.03em}
+.ebike-pop{position:absolute;right:14px;top:14px;font-size:26px;opacity:0;animation:pop 1.6s ease forwards;}
+@keyframes pop{0%{opacity:0;transform:translateY(6px) scale(.7)}20%{opacity:1;transform:translateY(0) scale(1)}80%{opacity:1}100%{opacity:0;transform:translateY(-8px) scale(.9)}}
+.savebox{text-align:center;padding:18px 10px;}
+.savebox .amount{font-size:40px;font-weight:800;color:var(--gold);}
+.savebox .tag{color:var(--sub);font-size:12px;letter-spacing:.05em;text-transform:uppercase;}
+.stat{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center;}
+.stat .v{font-size:20px;font-weight:700;}
+.stat .k{font-size:11px;color:var(--sub);margin-top:2px;}
+.quick{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;}
+.qbtn{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:12px 4px;text-align:center;font-size:12px;color:var(--text);cursor:pointer;}
+.qbtn .ic{font-size:22px;display:block;margin-bottom:4px;}
+.qbtn:active{transform:scale(.96)}
+label{display:block;font-size:12px;color:var(--sub);margin:10px 0 4px;}
+input,select,textarea{width:100%;background:#12151a;border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-size:14px;}
+textarea{resize:vertical;min-height:44px}
+.row{display:flex;gap:8px;}
+.row>*{flex:1}
+button.btn{background:var(--accent);color:#04121a;border:none;border-radius:12px;padding:12px;font-weight:700;font-size:14px;cursor:pointer;width:100%;margin-top:12px;}
+button.btn.secondary{background:var(--card2);color:var(--text);border:1px solid var(--line);}
+button.btn.danger{background:var(--red);color:#26060a;}
+button.btn:active{transform:scale(.98)}
+.mode-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px;}
+.mode-tabs div{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px 2px;text-align:center;font-size:12px;cursor:pointer;}
+.mode-tabs div.active{border-color:var(--accent);background:#132029;color:var(--accent);}
+.entry{border-bottom:1px solid var(--line);padding:10px 0;}
+.entry:last-child{border-bottom:none}
+.entry .top{display:flex;justify-content:space-between;font-size:13px;}
+.entry .meta{color:var(--sub);font-size:12px;margin-top:2px;}
+.entry .acts{margin-top:6px;display:flex;gap:8px;}
+.entry .acts span{font-size:12px;color:var(--accent);cursor:pointer;}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;letter-spacing:.03em;}
+.badge.real{background:#173a2a;color:var(--green);}
+.badge.est{background:#3a2f17;color:var(--gold);}
+.badge.sim{background:#1c2b3a;color:var(--accent);}
+.progress{background:#12151a;border-radius:20px;height:14px;overflow:hidden;margin-top:8px;border:1px solid var(--line);}
+.progress i{display:block;height:100%;background:linear-gradient(90deg,#3ddc84,#5ac8fa);}
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:90px;margin-top:8px;}
+.bar-chart .b{flex:1;background:var(--card2);border-radius:4px 4px 0 0;position:relative;min-height:2px;}
+.bar-chart .b i{position:absolute;left:0;bottom:0;width:100%;background:var(--accent);border-radius:4px 4px 0 0;display:block;}
+.bar-chart .lab{font-size:9px;color:var(--sub);text-align:center;margin-top:2px;}
+.bcwrap{display:flex;gap:4px;}
+.bcol{flex:1;display:flex;flex-direction:column;align-items:center;}
+nav.tabbar{position:fixed;bottom:0;left:0;right:0;background:#111318;border-top:1px solid var(--line);display:flex;padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));z-index:50;}
+nav.tabbar div{flex:1;text-align:center;font-size:10px;color:var(--sub);padding:6px 0;cursor:pointer;border-radius:10px;}
+nav.tabbar div.active{color:var(--accent);background:#132029;}
+nav.tabbar div .ic{font-size:18px;display:block;}
+.view{display:none;}
+.view.active{display:block;}
+.hint{font-size:12px;color:var(--sub);background:#12151a;border:1px dashed var(--line);border-radius:10px;padding:10px;margin-top:8px;}
+.savedflash{background:linear-gradient(135deg,#173a2a,#0f2a1e);border:1px solid #2a5a3f;border-radius:16px;padding:16px;text-align:center;margin-top:10px;}
+.savedflash .big2{font-size:30px;font-weight:800;color:var(--green);}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1f2530;color:var(--text);padding:10px 16px;border-radius:20px;font-size:13px;border:1px solid var(--line);z-index:100;opacity:0;transition:opacity .3s;}
+.toast.show{opacity:1;}
+small.foot{display:block;color:var(--sub);font-size:11px;margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- DASHBOARD -->
+  <div class="view active" id="view-dashboard">
+    <div class="hero">
+      <div style="position:relative;min-height:110px" class="car">
+        <!-- Wenn eine eigene freigestellte Datei (vehicle.webp/vehicle.png) neben dieser HTML-Datei liegt, wird sie automatisch statt der Illustration verwendet -->
+        <img id="vehicleImg" src="vehicle.webp" alt="Mein Mercedes E 350 CGI Coupé"
+             onerror="handleVehicleImgError(this)">
+        <div id="vehicleSvgWrap" style="display:none">
+        <svg viewBox="0 0 420 160" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#8f96a0"/><stop offset="55%" stop-color="#5c6470"/><stop offset="100%" stop-color="#3a4048"/>
+            </linearGradient>
+            <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#4a5560"/><stop offset="100%" stop-color="#1c2126"/>
+            </linearGradient>
+            <radialGradient id="glow" cx="50%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#3a4048" stop-opacity=".55"/><stop offset="100%" stop-color="#3a4048" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <ellipse cx="215" cy="30" rx="190" ry="60" fill="url(#glow)"/>
+          <ellipse cx="212" cy="140" rx="165" ry="10" fill="#000" opacity="0.4"/>
+          <!-- Karosserie, Coupé-Silhouette W212-artig, leicht 3/4-Front -->
+          <path d="M35,108 C38,72 70,52 108,48 C118,30 165,18 215,18 C270,18 305,26 322,46 C352,50 380,62 398,96 L398,108 C398,114 392,118 385,118 L358,118 C358,102 345,90 330,90 C315,90 302,102 302,118 L150,118 C150,102 137,90 122,90 C107,90 94,102 94,118 L58,118 C46,118 36,114 35,116 Z" fill="url(#body)"/>
+          <!-- Fensterband -->
+          <path d="M110,48 C120,32 165,22 215,22 C265,22 298,30 316,46 C295,44 260,42 215,42 C170,42 132,45 110,48Z" fill="url(#glass)"/>
+          <path d="M118,49 C128,36 168,27 215,27 C258,27 288,33 306,45 C285,44 255,43 215,43 C178,43 143,45 118,49Z" fill="#0e1114" opacity=".5"/>
+          <!-- Charakterlinie Seite -->
+          <path d="M40,96 C90,88 300,86 392,92" fill="none" stroke="#a9b0b9" stroke-width="1.4" opacity=".55"/>
+          <!-- Front / Kühlergrill-Andeutung (kein Markenlogo) -->
+          <path d="M330,88 C338,80 352,80 360,88 L364,100 L326,100 Z" fill="#20242a"/>
+          <line x1="330" y1="92" x2="360" y2="92" stroke="#9aa1ab" stroke-width="1.3"/>
+          <line x1="329" y1="96" x2="361" y2="96" stroke="#9aa1ab" stroke-width="1.3"/>
+          <!-- Scheinwerfer -->
+          <path d="M312,80 C322,76 334,78 338,86 C332,90 318,90 310,87 Z" fill="#dfe6ec" opacity=".9"/>
+          <!-- Räder -->
+          <circle cx="122" cy="118" r="26" fill="#14171a"/><circle cx="122" cy="118" r="13" fill="#a8afb8"/>
+          <path d="M122,108 L122,128 M112,118 L132,118 M114,110 L130,126 M130,110 L114,126" stroke="#5b6169" stroke-width="2"/>
+          <circle cx="330" cy="118" r="26" fill="#14171a"/><circle cx="330" cy="118" r="13" fill="#a8afb8"/>
+          <path d="M330,108 L330,128 M320,118 L340,118 M322,110 L338,126 M338,110 L322,126" stroke="#5b6169" stroke-width="2"/>
+          <!-- Rücklicht -->
+          <rect x="42" y="86" width="8" height="16" rx="3" fill="#b4171a" opacity=".85"/>
+        </svg>
+        </div>
+      </div>
+      <div class="ebike-pop" id="ebikePop">🚲</div>
+      <div class="caption"><b>Mercedes E 350 CGI Coupé</b><span>292 PS • V6 • W212 • Grau</span><span style="margin-top:2px">Dein persönlicher Fahrkosten-Tracker</span></div>
+    </div>
+
+    <div class="card savebox">
+      <div class="tag">💰 Dieses Jahr gespart</div>
+      <div class="amount" id="dashSaved">0,00 €</div>
+    </div>
+
+    <div class="grid2">
+      <div class="stat"><div class="v" id="dashEbikeKm">0 km</div><div class="k">🚲 E-Bike</div></div>
+      <div class="stat"><div class="v" id="dashAvoidedKm">0 km</div><div class="k">🚗 Auto vermieden</div></div>
+      <div class="stat"><div class="v" id="dashAvoidedL">0,0 L</div><div class="k">⛽ Benzin vermieden</div></div>
+      <div class="stat"><div class="v" id="dashOdo">– km</div><div class="k">Kilometerstand</div></div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div><div class="lbl">Benzinpreis (ENI Gutmann)</div><div id="dashPrice" style="font-weight:700">–</div></div>
+        <div><div class="lbl">Kosten/km</div><div id="dashCostKm" style="font-weight:700">–</div></div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <div><div class="lbl">Verbrauch</div><div id="dashCons" style="font-weight:700">–</div></div>
+        <div></div>
+      </div>
+      <div id="dashConsBadge"></div>
+      <div class="lbl" style="margin-top:10px">Kosten nach Distanz</div>
+      <div id="dashCostTable" class="row" style="flex-wrap:wrap;gap:6px 10px;font-size:12px;color:var(--sub)"></div>
+    </div>
+
+    <h2>Heute</h2>
+    <div class="card" id="dashToday"></div>
+
+    <div class="quick">
+      <div class="qbtn" onclick="openTripForm('auto')"><span class="ic">🚗</span>Fahrt</div>
+      <div class="qbtn" onclick="showView('tanken')"><span class="ic">⛽</span>Tanken</div>
+      <div class="qbtn" onclick="openTripForm('ebike')"><span class="ic">🚲</span>E-Bike</div>
+    </div>
+
+    <h2>Monatsübersicht</h2>
+    <div class="card" id="dashMonthBox"></div>
+  </div>
+
+  <!-- FAHRTEN -->
+  <div class="view" id="view-fahrten">
+    <h2>Neue Fahrt</h2>
+    <div class="card">
+      <div class="mode-tabs" id="modeTabs">
+        <div data-m="auto" onclick="setMode('auto')">🚗 Mercedes</div>
+        <div data-m="ebike" onclick="setMode('ebike')">🚲 E-Bike</div>
+        <div data-m="rad" onclick="setMode('rad')">🚴 Fahrrad</div>
+        <div data-m="vermieden" onclick="setMode('vermieden')">❌ Vermieden</div>
+      </div>
+      <label>Datum</label><input type="date" id="tripDate">
+      <label>Kilometer</label><input type="number" step="0.1" id="tripKm" placeholder="z.B. 20">
+      <div class="row">
+        <div><label>Start (optional)</label><input id="tripFrom"></div>
+        <div><label>Ziel (optional)</label><input id="tripTo"></div>
+      </div>
+      <label>Notiz (optional)</label><textarea id="tripNote"></textarea>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:12px;color:var(--text)"><input type="checkbox" id="tripAvoidable" style="width:auto"> Fahrt wäre vermeidbar gewesen</label>
+      <button class="btn" onclick="saveTrip()">Fahrt speichern</button>
+      <div id="tripResult"></div>
+    </div>
+    <h2>Gespeicherte Strecken</h2>
+    <div class="card">
+      <div class="row">
+        <input id="routeName" placeholder="Name (z.B. Arbeit)">
+        <input id="routeKm" type="number" step="0.1" placeholder="km">
+      </div>
+      <button class="btn secondary" onclick="addRoute()">Strecke speichern</button>
+      <div id="routeList" style="margin-top:8px"></div>
+    </div>
+    <h2>Historie</h2>
+    <div class="card" id="tripHistory"></div>
+  </div>
+
+  <!-- TANKEN -->
+  <div class="view" id="view-tanken">
+    <h2>Tankvorgang erfassen</h2>
+    <div class="card">
+      <label>Datum</label><input type="date" id="tankDate">
+      <div class="row">
+        <div><label>Liter</label><input type="number" step="0.01" id="tankLiters" oninput="calcTank('liters')"></div>
+        <div><label>Gesamtbetrag €</label><input type="number" step="0.01" id="tankTotal" oninput="calcTank('total')"></div>
+      </div>
+      <label>Preis/Liter €</label><input type="number" step="0.001" id="tankPpl" oninput="calcTank('ppl')">
+      <label>Kilometerstand</label><input type="number" step="1" id="tankOdo">
+      <label>Tankstelle</label><input id="tankStation" placeholder="ENI Gutmann Ehrwald">
+      <label style="display:flex;align-items:center;gap:8px;color:var(--text)"><input type="checkbox" id="tankFull" style="width:auto" checked> Tank wurde vollgetankt</label>
+      <label>Notiz (optional)</label><textarea id="tankNote"></textarea>
+      <div class="hint">Der Verbrauch wird nur aus Intervallen zwischen zwei vollgetankten Tankvorgängen berechnet – so bleibt er realistisch.</div>
+      <button class="btn" onclick="saveTank()">Tankvorgang speichern</button>
+      <div id="tankEditHint" class="hint" style="display:none">Bearbeitungsmodus aktiv</div>
+    </div>
+
+    <h2>Tankstellenfahrt</h2>
+    <div class="card">
+      <label>Startpunkt</label><input id="stationStart" placeholder="z.B. Mein Zuhause">
+      <label>Ziel</label><input value="ENI Gutmann Ehrwald" disabled>
+      <label>Entfernung (einfach, km) – manuell</label><input type="number" step="0.1" id="stationDist">
+      <div class="hint">Kostenlose automatische Routenberechnung ist ohne API-Key aus dem Browser nicht zuverlässig möglich – bitte Kilometer manuell eintragen.</div>
+      <button class="btn secondary" onclick="calcStationTrip()">Berechnen</button>
+      <div id="stationResult"></div>
+    </div>
+
+    <h2>Verbrauch & Tankpreis</h2>
+    <div class="card" id="consChart"></div>
+    <div class="card" id="priceChart"></div>
+
+    <h2>Historie Tankvorgänge</h2>
+    <div class="card" id="tankHistory"></div>
+  </div>
+
+  <!-- STATISTIK -->
+  <div class="view" id="view-statistik">
+    <div class="row" style="margin-bottom:6px">
+      <button class="btn secondary" onclick="setStatPeriod('week')" id="pWeek">Woche</button>
+      <button class="btn secondary" onclick="setStatPeriod('month')" id="pMonth">Monat</button>
+      <button class="btn secondary" onclick="setStatPeriod('year')" id="pYear">Jahr</button>
+    </div>
+    <div class="card savebox">
+      <div class="tag" id="statPeriodLabel">Diese Woche gespart</div>
+      <div class="amount" id="statSaved">0,00 €</div>
+    </div>
+    <div class="grid2">
+      <div class="stat"><div class="v" id="statAutoKm">0</div><div class="k">Auto-km</div></div>
+      <div class="stat"><div class="v" id="statEbikeKm">0</div><div class="k">E-Bike-km</div></div>
+      <div class="stat"><div class="v" id="statRadKm">0</div><div class="k">Fahrrad-km</div></div>
+      <div class="stat"><div class="v" id="statAvoidKm">0</div><div class="k">Auto-km vermieden</div></div>
+      <div class="stat"><div class="v" id="statFuelCost">0,00 €</div><div class="k">Benzinkosten</div></div>
+      <div class="stat"><div class="v" id="statAvoidL">0,0 L</div><div class="k">Benzin vermieden</div></div>
+    </div>
+    <div class="card" id="statExtra"></div>
+    <h2>Vermeidbare Fahrten</h2>
+    <div class="card" id="statAvoidable"></div>
+    <h2>Jahresdiagramme</h2>
+    <div class="card"><div class="lbl">Gespart pro Monat</div><div id="chartSavedMonth"></div></div>
+    <div class="card"><div class="lbl">Auto-km vermieden pro Monat</div><div id="chartAvoidMonth"></div></div>
+  </div>
+
+  <!-- SPAREN -->
+  <div class="view" id="view-sparen">
+    <h2>Sparziel (monatlich)</h2>
+    <div class="card">
+      <label>Ziel in €</label><input type="number" id="goalInput" step="1">
+      <button class="btn secondary" onclick="saveGoal()">Ziel speichern</button>
+      <div id="goalProgress" style="margin-top:12px"></div>
+    </div>
+    <h2>„Was wäre wenn?“ Simulation</h2>
+    <div class="card">
+      <label>Kilometer</label><input type="number" id="simKm" step="1" placeholder="z.B. 300">
+      <label>Statt Auto mit</label>
+      <select id="simMode"><option value="ebike">🚲 E-Bike</option><option value="rad">🚴 Fahrrad</option></select>
+      <button class="btn secondary" onclick="runSim()">Simulieren</button>
+      <div id="simResult"></div>
+    </div>
+    <h2>Reichweite (Schätzung)</h2>
+    <div class="card" id="rangeBox"></div>
+  </div>
+
+  <!-- EINSTELLUNGEN -->
+  <div class="view" id="view-einstellungen">
+    <h2>Fahrzeug & Verbrauch</h2>
+    <div class="card">
+      <label>Standardverbrauch (l/100km, falls zu wenig Tankdaten)</label>
+      <input type="number" step="0.1" id="setDefaultCons">
+      <label>Tankvolumen (Liter) – optional</label>
+      <input type="number" step="0.1" id="setTankVolume" placeholder="Nicht festgelegt">
+    </div>
+    <h2>Benzinpreis</h2>
+    <div class="card">
+      <div class="lbl">Quelle: ENI Gutmann Ehrwald (benzinpreis-blitz.de)</div>
+      <div id="priceStatus" class="hint"></div>
+      <button class="btn secondary" onclick="tryAutoPrice()">Automatische Aktualisierung versuchen</button>
+      <label>Preis manuell eintragen (€/Liter)</label>
+      <input type="number" step="0.001" id="setManualPrice">
+      <button class="btn secondary" onclick="saveManualPrice()">Preis speichern</button>
+      <a href="https://www.benzinpreis-blitz.de/eni-gutmann-ehrwald-schanz-16029/" target="_blank" style="display:block;margin-top:8px;color:var(--accent);font-size:13px">Preis-Seite öffnen ↗</a>
+    </div>
+    <h2>Tankstellenfahrt & Sonstiges</h2>
+    <div class="card">
+      <label>Bevorzugte Tankstelle</label><input id="setStation">
+      <label>Standard-Startpunkt Tankstellenfahrt</label><input id="setStartPoint">
+    </div>
+    <h2>Zusätzliche Fahrzeugkosten (optional, Standard leer)</h2>
+    <div class="card">
+      <label>Versicherung / Jahr €</label><input type="number" id="setIns">
+      <label>Kfz-Steuer / Jahr €</label><input type="number" id="setTax">
+      <label>Wartung / Jahr €</label><input type="number" id="setMaint">
+      <label>Reifen / Jahr €</label><input type="number" id="setTires">
+      <label>TÜV/§57a €</label><input type="number" id="setTuv">
+      <label>Öl/Service €</label><input type="number" id="setService">
+      <label>Sonstiges €</label><input type="number" id="setOther">
+      <label>Wertverlust / Jahr € (optional)</label><input type="number" id="setDeprec">
+      <div class="hint" id="totalCostBox"></div>
+    </div>
+    <button class="btn" onclick="saveSettings()">Einstellungen speichern</button>
+    <h2>App installieren</h2>
+    <div class="card" id="installBox">
+      <div class="hint">Prüfe Installationsmöglichkeit…</div>
+    </div>
+    <h2>Daten</h2>
+    <div class="card">
+      <button class="btn secondary" onclick="exportData()">Daten exportieren (JSON)</button>
+      <label>Daten importieren</label>
+      <input type="file" id="importFile" accept=".json">
+      <button class="btn secondary" onclick="importData()">Importieren</button>
+      <button class="btn secondary" onclick="loadTestData()">Testdaten laden</button>
+      <button class="btn danger" onclick="resetAll()">Alle Daten löschen</button>
+    </div>
+  </div>
+
+</div>
+
+<nav class="tabbar">
+  <div class="active" data-v="dashboard" onclick="showView('dashboard')"><span class="ic">🏠</span>Dashboard</div>
+  <div data-v="fahrten" onclick="showView('fahrten')"><span class="ic">🚗</span>Fahrten</div>
+  <div data-v="tanken" onclick="showView('tanken')"><span class="ic">⛽</span>Tanken</div>
+  <div data-v="statistik" onclick="showView('statistik')"><span class="ic">📊</span>Statistik</div>
+  <div data-v="sparen" onclick="showView('sparen')"><span class="ic">💰</span>Sparen</div>
+  <div data-v="einstellungen" onclick="showView('einstellungen')"><span class="ic">⚙️</span>Mehr</div>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- Datenmodell ---------- */
+const KEY='mbTracker_v1';
+function defaultData(){return{
+  settings:{defaultConsumption:10,tankVolume:null,manualPrice:1.979,priceUpdated:'2026-09-20T12:17',priceSourceOk:false,
+    station:'ENI Gutmann Ehrwald',startPoint:'',monthlyGoal:100,
+    extra:{insurance:0,tax:0,maintenance:0,tires:0,tuv:0,service:0,other:0,deprec:0}},
+  tanks:[], trips:[], routes:[]
+};}
+let DATA = load();
+function load(){try{const d=JSON.parse(localStorage.getItem(KEY));if(!d)return defaultData();
+  d.settings=Object.assign(defaultData().settings,d.settings||{}); d.tanks=d.tanks||[]; d.trips=d.trips||[]; d.routes=d.routes||[];
+  // Migration: alte Tankvorgänge ohne 'full'-Feld -> als vollgetankt annehmen (bisheriges Verhalten), damit bestehende Verbrauchsdaten nicht plötzlich verschwinden
+  d.tanks.forEach(t=>{ if(t.full===undefined) t.full=true; });
+  return d;}catch(e){return defaultData();}}
+function save(){localStorage.setItem(KEY,JSON.stringify(DATA));}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);}
+function eur(n){return (Math.round((n+Number.EPSILON)*100)/100).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';}
+function num2(n){return (Math.round((n+Number.EPSILON)*100)/100).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+/* ---------- Berechnungen ---------- */
+function getConsumption(){
+  const t=[...DATA.tanks].filter(x=>x.odo!=null).sort((a,b)=>a.odo-b.odo);
+  if(t.length<2) return {value:DATA.settings.defaultConsumption,real:false,intervals:[]};
+  let ratios=[];
+  for(let i=1;i<t.length;i++){
+    const dist=t[i].odo-t[i-1].odo;
+    // Nur werten, wenn BEIDE Tankvorgänge des Intervalls als vollgetankt markiert sind
+    if(dist>0 && t[i].liters>0 && t[i].full && t[i-1].full) ratios.push(t[i].liters/dist*100);
+  }
+  if(ratios.length===0) return {value:DATA.settings.defaultConsumption,real:false,intervals:[]};
+  const avg=ratios.reduce((a,b)=>a+b,0)/ratios.length;
+  return {value:avg,real:true,intervals:ratios};
+}
+function getFuelPrice(){return DATA.settings.manualPrice||null;}
+function getCostPerKm(){
+  const c=getConsumption().value, p=getFuelPrice();
+  if(!p) return 0;
+  return c*p/100;
+}
+function latestOdo(){
+  if(DATA.tanks.length===0) return null;
+  return Math.max(...DATA.tanks.map(t=>t.odo||0));
+}
+function avgActualPrice(){
+  if(DATA.tanks.length===0) return null;
+  return DATA.tanks.reduce((a,t)=>a+t.pricePerLiter,0)/DATA.tanks.length;
+}
+/* Fahrt-Kosten/Ersparnis berechnen */
+function tripCalc(trip){
+  const costPerKm=getCostPerKm();
+  if(trip.mode==='auto'){
+    return {cost:trip.km*costPerKm, saved:0, avoidedKm:0, avoidedL:0};
+  } else if(trip.mode==='ebike'||trip.mode==='rad'||trip.mode==='vermieden'){
+    const cons=getConsumption().value;
+    const wouldCost=trip.km*costPerKm;
+    const avoidedL=trip.km*cons/100;
+    return {cost:0, saved:wouldCost, avoidedKm:trip.km, avoidedL:avoidedL};
+  }
+  return {cost:0,saved:0,avoidedKm:0,avoidedL:0};
+}
+
+/* ---------- Navigation ---------- */
+function showView(v){
+  document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('nav.tabbar div').forEach(e=>e.classList.toggle('active',e.dataset.v===v));
+  if(v==='dashboard') renderDashboard();
+  if(v==='fahrten') renderFahrten();
+  if(v==='tanken') renderTanken();
+  if(v==='statistik') renderStat();
+  if(v==='sparen') renderSparen();
+  if(v==='einstellungen') renderSettings();
+}
+
+/* ---------- Dashboard ---------- */
+function renderDashboard(){
+  const year=new Date().getFullYear();
+  let saved=0, ebikeKm=0, avoidKm=0, avoidL=0;
+  DATA.trips.forEach(tr=>{
+    if(new Date(tr.date).getFullYear()!==year) return;
+    const c=tripCalc(tr);
+    saved+=c.saved; avoidKm+=c.avoidedKm; avoidL+=c.avoidedL;
+    if(tr.mode==='ebike') ebikeKm+=tr.km;
+  });
+  document.getElementById('dashSaved').textContent=eur(saved);
+  document.getElementById('dashEbikeKm').textContent=Math.round(ebikeKm)+' km';
+  document.getElementById('dashAvoidedKm').textContent=Math.round(avoidKm)+' km';
+  document.getElementById('dashAvoidedL').textContent=num2(avoidL)+' L';
+  const odo=latestOdo(); document.getElementById('dashOdo').textContent=odo?odo.toLocaleString('de-DE')+' km':'– km';
+  const p=getFuelPrice();
+  document.getElementById('dashPrice').textContent=p?num2(p)+' €/L':'kein Preis hinterlegt';
+  const ck=getCostPerKm();
+  document.getElementById('dashCostKm').textContent=p?num2(ck)+' €/km':'–';
+  const cons=getConsumption();
+  document.getElementById('dashCons').textContent=num2(cons.value)+' l/100km';
+  document.getElementById('dashConsBadge').innerHTML=cons.real?'<span class="badge real">Echt aus Tankdaten</span>':'<span class="badge est">Schätzwert – noch nicht genügend Tankdaten</span>';
+  document.getElementById('dashCostTable').innerHTML=[1,10,50,100,500].map(km=>`<span>${km} km: <b style="color:var(--text)">${p?eur(ck*km):'–'}</b></span>`).join('');
+  // Heute
+  const todayStr=new Date().toISOString().slice(0,10);
+  let tAuto=0,tEbike=0,tRad=0,tSaved=0,tAny=false;
+  DATA.trips.forEach(tr=>{if(tr.date===todayStr){tAny=true;const c=tripCalc(tr);
+    if(tr.mode==='auto')tAuto+=tr.km; if(tr.mode==='ebike')tEbike+=tr.km; if(tr.mode==='rad')tRad+=tr.km; tSaved+=c.saved;}});
+  document.getElementById('dashToday').innerHTML=tAny?`<div class="grid2">
+    <div class="stat"><div class="v">${num2(tAuto)}</div><div class="k">🚗 Auto km</div></div>
+    <div class="stat"><div class="v">${num2(tEbike)}</div><div class="k">🚲 E-Bike km</div></div>
+    <div class="stat"><div class="v">${num2(tRad)}</div><div class="k">🚴 Fahrrad km</div></div>
+    <div class="stat"><div class="v" style="color:var(--gold)">${eur(tSaved)}</div><div class="k">Gespart</div></div>
+    </div>`:'<div class="hint">Heute noch keine Fahrten erfasst.</div>';
+  // Monatsübersicht
+  const m=new Date().getMonth();
+  let mSaved=0,mAuto=0;
+  DATA.trips.forEach(tr=>{const d=new Date(tr.date); if(d.getFullYear()===year&&d.getMonth()===m){const c=tripCalc(tr); mSaved+=c.saved; if(tr.mode==='auto') mAuto+=tr.km;}});
+  document.getElementById('dashMonthBox').innerHTML=`<div class="row"><div><div class="lbl">Gespart diesen Monat</div><div class="big">${eur(mSaved)}</div></div><div><div class="lbl">Auto-km diesen Monat</div><div class="big">${Math.round(mAuto)}</div></div></div>`;
+}
+
+/* ---------- Fahrten ---------- */
+let currentMode='auto';
+function setMode(m){currentMode=m;document.querySelectorAll('#modeTabs div').forEach(d=>d.classList.toggle('active',d.dataset.m===m));}
+function openTripForm(m){showView('fahrten');setMode(m);document.getElementById('tripKm').focus();}
+function saveTrip(){
+  const km=parseFloat(document.getElementById('tripKm').value);
+  const date=document.getElementById('tripDate').value||new Date().toISOString().slice(0,10);
+  if(!km||km<=0){toast('Bitte Kilometer eingeben');return;}
+  const trip={id:uid(),date,km,mode:currentMode,
+    from:document.getElementById('tripFrom').value,to:document.getElementById('tripTo').value,
+    note:document.getElementById('tripNote').value, avoidable:document.getElementById('tripAvoidable').checked};
+  DATA.trips.push(trip); save();
+  const c=tripCalc(trip);
+  let html='';
+  if(trip.mode==='auto'){
+    html=`<div class="hint">🚗 Autofahrt: ${num2(km)} km × ${num2(getCostPerKm())} €/km = <b>${eur(c.cost)}</b></div>`;
+  } else if(trip.mode==='ebike'||trip.mode==='rad'){
+    const icon=trip.mode==='ebike'?'🚲':'🚴';
+    html=`<div class="savedflash"><div>${icon} Statt Auto gefahren</div><div class="big2">${eur(c.saved)} gespart</div>
+    <div style="font-size:13px;margin-top:6px">${Math.round(c.avoidedKm)} km Autofahrt vermieden · ${num2(c.avoidedL)} Liter Benzin vermieden</div></div>`;
+    if(trip.mode==='ebike'){document.getElementById('ebikePop').style.animation='none';void document.getElementById('ebikePop').offsetWidth;document.getElementById('ebikePop').style.animation='pop 1.6s ease forwards';}
+  } else {
+    html=`<div class="hint"><span class="badge est">Vermeidungs-Schätzung</span><br>❌ Fahrt vermieden: ${eur(c.saved)} theoretische Benzinkosten gespart, ${Math.round(c.avoidedKm)} km & ${num2(c.avoidedL)} L vermieden. Zählt zur Ersparnis-Statistik, nicht zu echten E-Bike-/Fahrrad-km.</div>`;
+  }
+  document.getElementById('tripResult').innerHTML=html;
+  document.getElementById('tripKm').value='';document.getElementById('tripFrom').value='';document.getElementById('tripTo').value='';document.getElementById('tripNote').value='';document.getElementById('tripAvoidable').checked=false;
+  renderFahrten(); toast('Fahrt gespeichert');
+}
+function deleteTrip(id){DATA.trips=DATA.trips.filter(t=>t.id!==id);save();renderFahrten();renderDashboard();}
+function editTrip(id){
+  const t=DATA.trips.find(x=>x.id===id); if(!t)return;
+  showView('fahrten'); setMode(t.mode);
+  document.getElementById('tripDate').value=t.date; document.getElementById('tripKm').value=t.km;
+  document.getElementById('tripFrom').value=t.from||''; document.getElementById('tripTo').value=t.to||'';
+  document.getElementById('tripNote').value=t.note||''; document.getElementById('tripAvoidable').checked=!!t.avoidable;
+  deleteTrip(id);
+}
+function addRoute(){
+  const name=document.getElementById('routeName').value, km=parseFloat(document.getElementById('routeKm').value);
+  if(!name||!km){toast('Name und km angeben');return;}
+  DATA.routes.push({id:uid(),name,km}); save();
+  document.getElementById('routeName').value='';document.getElementById('routeKm').value='';
+  renderFahrten();
+}
+function deleteRoute(id){DATA.routes=DATA.routes.filter(r=>r.id!==id);save();renderFahrten();}
+function renderFahrten(){
+  setMode(currentMode);
+  document.getElementById('routeList').innerHTML=DATA.routes.map(r=>{
+    const ck=getCostPerKm(), cons=getConsumption().value;
+    return `<div class="entry"><div class="top"><b>${r.name}</b><span>${num2(r.km)} km</span></div>
+    <div class="meta">Auto: ${eur(r.km*ck)} · E-Bike-Ersparnis: ${eur(r.km*ck)} · vermiedene Liter: ${num2(r.km*cons/100)} L</div>
+    <div class="acts"><span onclick="deleteRoute('${r.id}')">Löschen</span></div></div>`;
+  }).join('')||'<div class="hint">Noch keine Strecken gespeichert.</div>';
+  const list=[...DATA.trips].sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('tripHistory').innerHTML=list.map(t=>{
+    const c=tripCalc(t); const icon={auto:'🚗',ebike:'🚲',rad:'🚴',vermieden:'❌'}[t.mode];
+    return `<div class="entry"><div class="top"><b>${icon} ${t.date}</b><span>${num2(t.km)} km</span></div>
+    <div class="meta">${t.from||''}${t.to?' → '+t.to:''} ${t.avoidable?' · vermeidbar':''}</div>
+    <div class="meta">${t.mode==='auto'?'Kosten: '+eur(c.cost):'Gespart: '+eur(c.saved)}</div>
+    <div class="acts"><span onclick="editTrip('${t.id}')">Bearbeiten</span><span onclick="deleteTrip('${t.id}')">Löschen</span></div></div>`;
+  }).join('')||'<div class="hint">Noch keine Fahrten erfasst.</div>';
+}
+
+/* ---------- Tanken ---------- */
+let editingTankId=null;
+function calcTank(changed){
+  const Lf=document.getElementById('tankLiters'), Tf=document.getElementById('tankTotal'), Pf=document.getElementById('tankPpl');
+  const L=parseFloat(Lf.value), T=parseFloat(Tf.value), P=parseFloat(Pf.value);
+  if(changed==='liters'){
+    if(L>0&&T>0) Pf.value=(T/L).toFixed(3);
+    else if(L>0&&P>0) Tf.value=(L*P).toFixed(2);
+  } else if(changed==='total'){
+    if(L>0&&T>0) Pf.value=(T/L).toFixed(3);
+    else if(T>0&&P>0) Lf.value=(T/P).toFixed(2);
+  } else if(changed==='ppl'){
+    if(L>0&&P>0) Tf.value=(L*P).toFixed(2);
+    else if(T>0&&P>0) Lf.value=(T/P).toFixed(2);
+  }
+}
+function saveTank(){
+  const liters=parseFloat(document.getElementById('tankLiters').value);
+  let total=parseFloat(document.getElementById('tankTotal').value);
+  let ppl=parseFloat(document.getElementById('tankPpl').value);
+  const odo=parseFloat(document.getElementById('tankOdo').value);
+  const date=document.getElementById('tankDate').value||new Date().toISOString().slice(0,10);
+  if(!liters||liters<=0){toast('Bitte Liter eingeben');return;}
+  if(!total&&ppl) total=liters*ppl;
+  if(!ppl&&total) ppl=total/liters;
+  if(!total||!ppl){toast('Betrag oder Preis/Liter eingeben');return;}
+  const tank={id:editingTankId||uid(),date,liters,total,pricePerLiter:ppl,odo:odo||null,
+    station:document.getElementById('tankStation').value||DATA.settings.station,
+    full:document.getElementById('tankFull').checked, note:document.getElementById('tankNote').value};
+  if(editingTankId){ const i=DATA.tanks.findIndex(t=>t.id===editingTankId); DATA.tanks[i]=tank; editingTankId=null; document.getElementById('tankEditHint').style.display='none';}
+  else DATA.tanks.push(tank);
+  save();
+  ['tankLiters','tankTotal','tankPpl','tankOdo','tankStation','tankNote'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('tankFull').checked=true;
+  renderTanken(); renderDashboard(); toast('Tankvorgang gespeichert');
+}
+function deleteTank(id){DATA.tanks=DATA.tanks.filter(t=>t.id!==id);save();renderTanken();renderDashboard();}
+function editTank(id){
+  const t=DATA.tanks.find(x=>x.id===id); if(!t)return;
+  editingTankId=id; document.getElementById('tankEditHint').style.display='block';
+  document.getElementById('tankDate').value=t.date; document.getElementById('tankLiters').value=t.liters;
+  document.getElementById('tankTotal').value=t.total.toFixed(2); document.getElementById('tankPpl').value=t.pricePerLiter.toFixed(3);
+  document.getElementById('tankOdo').value=t.odo||''; document.getElementById('tankStation').value=t.station||'';
+  document.getElementById('tankFull').checked=t.full!==false;
+  document.getElementById('tankNote').value=t.note||'';
+}
+function calcStationTrip(){
+  const dist=parseFloat(document.getElementById('stationDist').value);
+  if(!dist||dist<=0){toast('Bitte Kilometer eingeben');return;}
+  const total=dist*2, cons=getConsumption().value, price=getFuelPrice();
+  const liters=total*cons/100;
+  const cost=price?liters*price:null;
+  document.getElementById('stationResult').innerHTML=`<div class="hint">
+  Hinweg: ${num2(dist)} km · Rückweg: ${num2(dist)} km · Gesamt: ${num2(total)} km<br>
+  Verbrauch: ${num2(cons)} l/100km → ${num2(liters)} Liter<br>
+  <b>Kosten der Fahrt zur Tankstelle (Hin+Rück): ${cost?eur(cost):'kein Preis hinterlegt'}</b></div>`;
+}
+function renderTanken(){
+  document.getElementById('stationStart').value=DATA.settings.startPoint||'';
+  const cons=getConsumption();
+  document.getElementById('consChart').innerHTML=`<div class="lbl">Verbrauchsentwicklung ${cons.real?'':'(noch keine ausreichenden Daten)'}</div>`+barChartHtml(getConsSeries());
+  document.getElementById('priceChart').innerHTML=priceChartHtml();
+  const list=[...DATA.tanks].sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('tankHistory').innerHTML=list.map(t=>`<div class="entry"><div class="top"><b>${t.date}</b><span>${eur(t.total)}</span></div>
+  <div class="meta">${num2(t.liters)} L · ${num2(t.pricePerLiter)} €/L ${t.odo?'· '+t.odo.toLocaleString('de-DE')+' km':''} · ${t.station||''}</div>
+  <div class="meta">${t.full?'<span class="badge real">Vollgetankt</span>':'<span class="badge est">Keine vollständige Tankfüllung – Verbrauch nicht exakt aus diesem Intervall berechnet</span>'}</div>
+  <div class="acts"><span onclick="editTank('${t.id}')">Bearbeiten</span><span onclick="deleteTank('${t.id}')">Löschen</span></div></div>`).join('')||'<div class="hint">Noch keine Tankvorgänge erfasst.</div>';
+}
+function getConsSeries(){
+  const t=[...DATA.tanks].filter(x=>x.odo!=null).sort((a,b)=>a.odo-b.odo);
+  let vals=[];
+  for(let i=1;i<t.length;i++){const d=t[i].odo-t[i-1].odo; if(d>0) vals.push(t[i].liters/d*100);}
+  return vals;
+}
+function barChartHtml(vals){
+  if(vals.length===0) return '<div class="hint">Noch nicht genügend Tankdaten für eine Verbrauchsberechnung.</div>';
+  const max=Math.max(...vals)*1.15;
+  return '<div class="bcwrap">'+vals.map(v=>`<div class="bcol"><div class="bar-chart" style="height:70px;width:100%"><div class="b" style="height:100%"><i style="height:${(v/max*100).toFixed(0)}%"></i></div></div><div class="lab">${num2(v)}</div></div>`).join('')+'</div>';
+}
+function priceChartHtml(){
+  const t=[...DATA.tanks].sort((a,b)=>a.date.localeCompare(b.date));
+  if(t.length===0) return '<div class="hint">Noch keine Tankpreise erfasst.</div>';
+  const prices=t.map(x=>x.pricePerLiter);
+  const max=Math.max(...prices), min=Math.min(...prices), avg=prices.reduce((a,b)=>a+b,0)/prices.length;
+  return `<div class="lbl">Tankpreis-Entwicklung (eigene Tankungen)</div>`+barChartHtml(prices)+
+  `<div class="meta" style="margin-top:6px">Höchster: ${num2(max)} € · Niedrigster: ${num2(min)} € · Durchschnitt: ${num2(avg)} €</div>`;
+}
+
+/* ---------- Statistik ---------- */
+let statPeriod='week';
+function setStatPeriod(p){statPeriod=p;renderStat();}
+function periodRange(p){
+  const now=new Date(); let start,end;
+  if(p==='week'){const day=(now.getDay()+6)%7; start=new Date(now);start.setHours(0,0,0,0);start.setDate(now.getDate()-day); end=new Date(start);end.setDate(start.getDate()+7);}
+  else if(p==='month'){start=new Date(now.getFullYear(),now.getMonth(),1);end=new Date(now.getFullYear(),now.getMonth()+1,1);}
+  else {start=new Date(now.getFullYear(),0,1);end=new Date(now.getFullYear()+1,0,1);}
+  return {start,end};
+}
+function renderStat(){
+  ['pWeek','pMonth','pYear'].forEach(id=>document.getElementById(id).style.opacity=0.6);
+  document.getElementById('p'+statPeriod[0].toUpperCase()+statPeriod.slice(1)).style.opacity=1;
+  const {start,end}=periodRange(statPeriod);
+  const trips=DATA.trips.filter(t=>{const d=new Date(t.date);return d>=start&&d<end;});
+  let saved=0,autoKm=0,ebikeKm=0,radKm=0,avoidKm=0,avoidL=0,fuelCost=0,avoidableKm=0,avoidableCost=0,nAuto=0,nEbike=0,nRad=0;
+  const ck=getCostPerKm();
+  trips.forEach(t=>{
+    const c=tripCalc(t);
+    if(t.mode==='auto'){autoKm+=t.km;fuelCost+=c.cost;nAuto++;}
+    if(t.mode==='ebike'){ebikeKm+=t.km;nEbike++;}
+    if(t.mode==='rad'){radKm+=t.km;nRad++;}
+    saved+=c.saved; avoidKm+=c.avoidedKm; avoidL+=c.avoidedL;
+    if(t.avoidable){avoidableKm+=t.km; avoidableCost+= t.mode==='auto'?c.cost:0;}
+  });
+  const labels={week:'Diese Woche gespart',month:'Diesen Monat gespart',year:'Dieses Jahr gespart'};
+  document.getElementById('statPeriodLabel').textContent=labels[statPeriod];
+  document.getElementById('statSaved').textContent=eur(saved);
+  document.getElementById('statAutoKm').textContent=Math.round(autoKm);
+  document.getElementById('statEbikeKm').textContent=Math.round(ebikeKm);
+  document.getElementById('statRadKm').textContent=Math.round(radKm);
+  document.getElementById('statAvoidKm').textContent=Math.round(avoidKm);
+  document.getElementById('statFuelCost').textContent=eur(fuelCost);
+  document.getElementById('statAvoidL').textContent=num2(avoidL)+' L';
+  let extra='';
+  if(statPeriod!=='week'){
+    const days=(end-start)/86400000;
+    const weeks=days/7;
+    extra+=`<div class="row"><div><div class="lbl">Ø Ersparnis/Tag</div><div class="big">${eur(saved/days)}</div></div><div><div class="lbl">Ø Ersparnis/Woche</div><div class="big">${eur(saved/weeks)}</div></div></div>`;
+    const totalPotKm=autoKm+avoidKm;
+    const quote=totalPotKm>0?(avoidKm/totalPotKm*100):0;
+    extra+=`<div class="lbl" style="margin-top:10px">Sparquote (vermiedene Auto-km / gesamt mögliche km)</div><div class="big">${num2(quote)} %</div>`;
+    extra+=`<div class="lbl" style="margin-top:10px">Fahrten: 🚗 ${nAuto} · 🚲 ${nEbike} · 🚴 ${nRad}</div>`;
+  }
+  document.getElementById('statExtra').innerHTML=extra||'<div class="hint">Mehr Kennzahlen in Monats-/Jahresansicht.</div>';
+  document.getElementById('statAvoidable').innerHTML=avoidableKm>0?`<div class="hint">Vermeidbare Auto-km: ${Math.round(avoidableKm)} km · Vermeidbare Benzinkosten: ${eur(avoidableCost)}</div>`:'<div class="hint">Keine als vermeidbar markierten Fahrten in diesem Zeitraum.</div>';
+  // Jahresdiagramme (immer aktuelles Jahr)
+  const year=new Date().getFullYear();
+  let months=Array(12).fill(0), monthsKm=Array(12).fill(0);
+  DATA.trips.forEach(t=>{const d=new Date(t.date); if(d.getFullYear()===year){const c=tripCalc(t); months[d.getMonth()]+=c.saved; monthsKm[d.getMonth()]+=c.avoidedKm;}});
+  document.getElementById('chartSavedMonth').innerHTML=monthChart(months,eur);
+  document.getElementById('chartAvoidMonth').innerHTML=monthChart(monthsKm,v=>Math.round(v)+' km');
+}
+function monthChart(vals,fmt){
+  const max=Math.max(...vals,1)*1.15; const names=['J','F','M','A','M','J','J','A','S','O','N','D'];
+  return '<div class="bcwrap">'+vals.map((v,i)=>`<div class="bcol"><div class="bar-chart" style="height:70px;width:100%"><div class="b" style="height:100%"><i style="height:${(v/max*100).toFixed(0)}%" title="${fmt(v)}"></i></div></div><div class="lab">${names[i]}</div></div>`).join('')+'</div>';
+}
+
+/* ---------- Sparen ---------- */
+function saveGoal(){DATA.settings.monthlyGoal=parseFloat(document.getElementById('goalInput').value)||0;save();renderSparen();toast('Ziel gespeichert');}
+function renderSparen(){
+  document.getElementById('goalInput').value=DATA.settings.monthlyGoal;
+  const {start,end}=periodRange('month');
+  let saved=0; DATA.trips.forEach(t=>{const d=new Date(t.date); if(d>=start&&d<end) saved+=tripCalc(t).saved;});
+  const goal=DATA.settings.monthlyGoal||0;
+  const pct=goal>0?Math.min(100,saved/goal*100):0;
+  document.getElementById('goalProgress').innerHTML=`<div class="row"><div><div class="lbl">Gespart</div><div class="big">${eur(saved)}</div></div><div><div class="lbl">Ziel</div><div class="big">${eur(goal)}</div></div></div>
+  <div class="progress"><i style="width:${pct}%"></i></div><div class="meta" style="margin-top:4px">${num2(pct)} % erreicht</div>`;
+  // Reichweite
+  const vol=DATA.settings.tankVolume, cons=getConsumption(), price=getFuelPrice();
+  if(!vol){document.getElementById('rangeBox').innerHTML='<div class="hint">Tankvolumen nicht festgelegt – Reichweitenschätzung nicht möglich. In Einstellungen eintragen.</div>';}
+  else{
+    const range=vol/cons.value*100;
+    const fillCost=price?vol*price:null;
+    document.getElementById('rangeBox').innerHTML=`<div class="badge est">Schätzung</div>
+    <div class="row" style="margin-top:8px"><div><div class="lbl">Reichweite</div><div class="big">${Math.round(range)} km</div></div>
+    <div><div class="lbl">Kosten volle Tankfüllung</div><div class="big">${fillCost?eur(fillCost):'–'}</div></div></div>`;
+  }
+  document.getElementById('simResult').innerHTML='';
+}
+function runSim(){
+  const km=parseFloat(document.getElementById('simKm').value); const mode=document.getElementById('simMode').value;
+  if(!km||km<=0){toast('Bitte km eingeben');return;}
+  const ck=getCostPerKm(), cons=getConsumption().value;
+  const saved=km*ck, avoidedL=km*cons/100;
+  document.getElementById('simResult').innerHTML=`<div class="hint"><span class="badge sim">Simulation</span><br>
+  ${Math.round(km)} km mit ${mode==='ebike'?'E-Bike':'Fahrrad'} statt Auto:<br>
+  Vermiedene Auto-km: ${Math.round(km)} km · Vermiedene Liter: ${num2(avoidedL)} L · Gesparte Benzinkosten: <b>${eur(saved)}</b><br>
+  Dies ist keine tatsächlich erzielte Ersparnis, sondern eine Simulation.</div>`;
+}
+
+/* ---------- Einstellungen ---------- */
+function renderSettings(){
+  const s=DATA.settings;
+  document.getElementById('setDefaultCons').value=s.defaultConsumption;
+  document.getElementById('setTankVolume').value=s.tankVolume||'';
+  document.getElementById('setManualPrice').value=s.manualPrice||'';
+  document.getElementById('setStation').value=s.station;
+  document.getElementById('setStartPoint').value=s.startPoint;
+  document.getElementById('setIns').value=s.extra.insurance||'';
+  document.getElementById('setTax').value=s.extra.tax||'';
+  document.getElementById('setMaint').value=s.extra.maintenance||'';
+  document.getElementById('setTires').value=s.extra.tires||'';
+  document.getElementById('setTuv').value=s.extra.tuv||'';
+  document.getElementById('setService').value=s.extra.service||'';
+  document.getElementById('setOther').value=s.extra.other||'';
+  document.getElementById('setDeprec').value=s.extra.deprec||'';
+  document.getElementById('priceStatus').innerHTML=`Letzter Preis: <b>${s.manualPrice?num2(s.manualPrice)+' €/L':'–'}</b><br>Aktualisiert: ${s.priceUpdated?new Date(s.priceUpdated).toLocaleString('de-DE'):'nie'}<br>${s.priceSourceOk?'Automatisch abgerufen.':'Automatische Aktualisierung nicht möglich – manuell eintragen.'}`;
+  const extraSum=Object.values(s.extra).reduce((a,b)=>a+(b||0),0);
+  const ck=getCostPerKm();
+  if(extraSum>0){
+    const km=latestOdo()||10000; // grober Nenner, nur Hinweis
+    document.getElementById('totalCostBox').innerHTML=`Benzinkosten/km: ${num2(ck)} €/km · Zusätzliche Fixkosten/Jahr: ${eur(extraSum)} (Gesamtkosten/km hängt zusätzlich von Ihrer Jahresfahrleistung ab).`;
+  } else document.getElementById('totalCostBox').innerHTML='Keine zusätzlichen Fahrzeugkosten hinterlegt – es wird nur mit Benzinkosten/km gerechnet.';
+}
+function saveSettings(){
+  const s=DATA.settings;
+  s.defaultConsumption=parseFloat(document.getElementById('setDefaultCons').value)||10;
+  s.tankVolume=parseFloat(document.getElementById('setTankVolume').value)||null;
+  s.station=document.getElementById('setStation').value;
+  s.startPoint=document.getElementById('setStartPoint').value;
+  s.extra={insurance:+document.getElementById('setIns').value||0,tax:+document.getElementById('setTax').value||0,
+    maintenance:+document.getElementById('setMaint').value||0,tires:+document.getElementById('setTires').value||0,
+    tuv:+document.getElementById('setTuv').value||0,service:+document.getElementById('setService').value||0,
+    other:+document.getElementById('setOther').value||0,deprec:+document.getElementById('setDeprec').value||0};
+  save(); toast('Einstellungen gespeichert'); renderSettings(); renderDashboard();
+}
+function saveManualPrice(){
+  const p=parseFloat(document.getElementById('setManualPrice').value);
+  if(!p||p<=0){toast('Ungültiger Preis');return;}
+  DATA.settings.manualPrice=p; DATA.settings.priceUpdated=new Date().toISOString(); DATA.settings.priceSourceOk=false;
+  save(); renderSettings(); renderDashboard(); toast('Preis gespeichert');
+}
+async function tryAutoPrice(){
+  document.getElementById('priceStatus').innerHTML='Prüfe automatische Aktualisierung…';
+  try{
+    const res=await fetch('https://www.benzinpreis-blitz.de/eni-gutmann-ehrwald-schanz-16029/',{mode:'cors'});
+    if(!res.ok) throw new Error('blocked');
+    const text=await res.text();
+    const m=text.match(/Super E10[\\s\\S]{0,80}?([0-9],[0-9]{2,3})\\s*€/);
+    if(m){DATA.settings.manualPrice=parseFloat(m[1].replace(',','.'));DATA.settings.priceUpdated=new Date().toISOString();DATA.settings.priceSourceOk=true;save();renderSettings();renderDashboard();toast('Preis aktualisiert');return;}
+    throw new Error('parse');
+  }catch(e){
+    document.getElementById('priceStatus').innerHTML=`Automatische Aktualisierung nicht verfügbar (Browser blockiert externe Seiten ohne CORS-Freigabe/API). Letzter bekannter Preis: <b>${DATA.settings.manualPrice?num2(DATA.settings.manualPrice)+' €/L':'–'}</b><br>Aktualisiert: ${new Date(DATA.settings.priceUpdated).toLocaleString('de-DE')}<br>Bitte manuell eintragen.`;
+  }
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='mercedes-tracker-export.json'; a.click();
+}
+function importData(){
+  const f=document.getElementById('importFile').files[0]; if(!f){toast('Datei auswählen');return;}
+  const mode=confirm('OK = Vorhandene Daten ERSETZEN.\nAbbrechen = Daten HINZUFÜGEN (zusammenführen).')?'replace':'merge';
+  const r=new FileReader();
+  r.onload=e=>{try{
+    const d=JSON.parse(e.target.result); if(!d.settings||!d.tanks||!d.trips){throw 0;}
+    d.tanks.forEach(t=>{if(t.full===undefined)t.full=true;});
+    if(mode==='replace'){ DATA=d; }
+    else { DATA.tanks=DATA.tanks.concat(d.tanks); DATA.trips=DATA.trips.concat(d.trips); DATA.routes=DATA.routes.concat(d.routes||[]); }
+    save(); toast('Import erfolgreich ('+(mode==='replace'?'ersetzt':'zusammengeführt')+')'); showView('dashboard');
+  }catch(err){toast('Ungültige Datei');}};
+  r.readAsText(f);
+}
+function resetAll(){ if(confirm('Wirklich ALLE Daten löschen?')){DATA=defaultData();save();showView('dashboard');toast('Alle Daten gelöscht');} }
+function loadTestData(){
+  DATA.tanks.push({id:uid(),date:'2026-08-01',liters:50,total:90,pricePerLiter:1.8,odo:100000,station:'ENI Gutmann Ehrwald',note:'Testdaten'});
+  DATA.tanks.push({id:uid(),date:'2026-08-20',liters:55,total:99,pricePerLiter:1.8,odo:100650,station:'ENI Gutmann Ehrwald',note:'Testdaten'});
+  DATA.trips.push({id:uid(),date:'2026-08-21',km:20,mode:'ebike',from:'',to:'',note:'Testdaten',avoidable:false});
+  save(); renderSettings(); toast('Testdaten geladen (55/650×100=8,46 l/100km erwartet)');
+}
+
+/* Fahrzeugbild: erst vehicle.webp, dann vehicle.png, sonst SVG-Illustration */
+function handleVehicleImgError(img){
+  if(!img.dataset.step){ img.dataset.step='1'; img.src='vehicle.png'; }
+  else { img.style.display='none'; document.getElementById('vehicleSvgWrap').style.display='block'; }
+}
+
+/* ---------- PWA ---------- */
+let deferredInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;renderInstallBox();});
+window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;renderInstallBox();});
+function renderInstallBox(){
+  const box=document.getElementById('installBox'); if(!box)return;
+  const isStandalone=window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  if(isStandalone){ box.innerHTML='App ist bereits installiert.'; return; }
+  if(deferredInstallPrompt){ box.innerHTML='<button class="btn" onclick="doInstall()">App installieren</button>'; return; }
+  if(isIOS){ box.innerHTML='<div class="hint">iPhone: Teilen-Symbol antippen → „Zum Home-Bildschirm“.</div>'; return; }
+  box.innerHTML='<div class="hint">Android/Chrome: Browser-Menü öffnen → „App installieren“ bzw. „Zum Startbildschirm hinzufügen“.</div>';
+}
+function doInstall(){ if(!deferredInstallPrompt)return; deferredInstallPrompt.prompt(); deferredInstallPrompt.userChoice.then(()=>{deferredInstallPrompt=null;renderInstallBox();}); }
+if('serviceWorker' in navigator){ try{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }catch(e){} }
+
+/* ---------- Init ---------- */
+(function init(){
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('tripDate').value=today;
+  document.getElementById('tankDate').value=today;
+  setMode('auto');
+  renderDashboard();
+  renderInstallBox();
+})();
+</script>
+</body>
+</html>
