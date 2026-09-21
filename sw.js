@@ -1,11 +1,13 @@
-const CACHE_VERSION = 'mb-tracker-v2';
+const CACHE_VERSION = 'mb-tracker-v4';
+const BASE = '/mercedes-fahrkosten/';
 const ASSETS = [
-  './mercedes-tracker.html',
-  './manifest.json',
-  './icon-192.svg',
-  './icon-512.svg',
-  './vehicle.webp',
-  './vehicle.png'
+  BASE,
+  BASE + 'index.html',
+  BASE + 'manifest.json',
+  BASE + 'icon-192.svg',
+  BASE + 'icon-512.svg',
+  BASE + 'vehicle.webp',
+  BASE + 'vehicle.png'
 ];
 
 self.addEventListener('install', (e) => {

@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Mercedes Fahrkosten & Spar Tracker</title>
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="/mercedes-fahrkosten/manifest.json">
 <meta name="theme-color" content="#0d0f12">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fahrkosten">
-<link rel="apple-touch-icon" href="icon-192.svg">
+<link rel="apple-touch-icon" href="/mercedes-fahrkosten/icon-192.svg">
 <style>
 :root{
   --bg:#0d0f12; --card:#1a1d22; --card2:#20242a; --line:#2c3038;
@@ -825,7 +825,7 @@ function renderInstallBox(){
   box.innerHTML='<div class="hint">Android/Chrome: Browser-Menü öffnen → „App installieren“ bzw. „Zum Startbildschirm hinzufügen“.</div>';
 }
 function doInstall(){ if(!deferredInstallPrompt)return; deferredInstallPrompt.prompt(); deferredInstallPrompt.userChoice.then(()=>{deferredInstallPrompt=null;renderInstallBox();}); }
-if('serviceWorker' in navigator){ try{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }catch(e){} }
+if('serviceWorker' in navigator){ try{ navigator.serviceWorker.register('/mercedes-fahrkosten/sw.js', {scope:'/mercedes-fahrkosten/'}).catch(()=>{}); }catch(e){} }
 
 /* ---------- Init ---------- */
 (function init(){

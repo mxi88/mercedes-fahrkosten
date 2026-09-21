@@ -2,14 +2,14 @@
   "name": "Mercedes Fahrkosten",
   "short_name": "Fahrkosten",
   "description": "Persönlicher Fahrkosten- und Spar-Tracker für meinen Mercedes und meine E-Bike-Fahrten.",
-  "start_url": "./mercedes-tracker.html",
-  "scope": "./",
+  "start_url": "/mercedes-fahrkosten/",
+  "scope": "/mercedes-fahrkosten/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0d0f12",
   "theme_color": "#0d0f12",
   "icons": [
-    { "src": "icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any" }
+    { "src": "/mercedes-fahrkosten/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/mercedes-fahrkosten/icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any" }
   ]
 }
