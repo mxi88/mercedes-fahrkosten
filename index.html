@@ -19,11 +19,11 @@
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;overflow-x:hidden;width:100%;}
 body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px));min-height:100vh;}
-.wrap{max-width:520px;margin:0 auto;padding:14px 14px 24px;}
+.wrap{max-width:520px;width:100%;margin:0 auto;padding:14px 14px 24px;overflow-x:hidden;}
 h2{font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--sub);margin:22px 0 10px;}
-.card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;}
+.card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;overflow-x:hidden;}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .big{font-size:26px;font-weight:700;}
 .lbl{font-size:12px;color:var(--sub);margin-bottom:4px;}
@@ -50,7 +50,8 @@ h2{font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--sub)
 .qbtn .ic{font-size:22px;display:block;margin-bottom:4px;}
 .qbtn:active{transform:scale(.96)}
 label{display:block;font-size:12px;color:var(--sub);margin:10px 0 4px;}
-input,select,textarea{width:100%;background:#12151a;border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-size:14px;}
+input,select,textarea{width:100%;max-width:100%;box-sizing:border-box;background:#12151a;border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-size:14px;}
+input[type="date"]{min-width:0;-webkit-appearance:none;appearance:none;}
 textarea{resize:vertical;min-height:44px}
 .row{display:flex;gap:8px;}
 .row>*{flex:1}
@@ -58,7 +59,7 @@ button.btn{background:var(--accent);color:#04121a;border:none;border-radius:12px
 button.btn.secondary{background:var(--card2);color:var(--text);border:1px solid var(--line);}
 button.btn.danger{background:var(--red);color:#26060a;}
 button.btn:active{transform:scale(.98)}
-.mode-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px;}
+.mode-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px;}
 .mode-tabs div{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px 2px;text-align:center;font-size:12px;cursor:pointer;}
 .mode-tabs div.active{border-color:var(--accent);background:#132029;color:var(--accent);}
 .entry{border-bottom:1px solid var(--line);padding:10px 0;}
@@ -191,7 +192,6 @@ small.foot{display:block;color:var(--sub);font-size:11px;margin-top:6px;}
       <div class="mode-tabs" id="modeTabs">
         <div data-m="auto" onclick="setMode('auto')">🚗 Mercedes</div>
         <div data-m="ebike" onclick="setMode('ebike')">🚲 E-Bike</div>
-        <div data-m="rad" onclick="setMode('rad')">🚴 Fahrrad</div>
         <div data-m="vermieden" onclick="setMode('vermieden')">❌ Vermieden</div>
       </div>
       <label>Datum</label><input type="date" id="tripDate">
@@ -269,7 +269,6 @@ small.foot{display:block;color:var(--sub);font-size:11px;margin-top:6px;}
     <div class="grid2">
       <div class="stat"><div class="v" id="statAutoKm">0</div><div class="k">Auto-km</div></div>
       <div class="stat"><div class="v" id="statEbikeKm">0</div><div class="k">E-Bike-km</div></div>
-      <div class="stat"><div class="v" id="statRadKm">0</div><div class="k">Fahrrad-km</div></div>
       <div class="stat"><div class="v" id="statAvoidKm">0</div><div class="k">Auto-km vermieden</div></div>
       <div class="stat"><div class="v" id="statFuelCost">0,00 €</div><div class="k">Benzinkosten</div></div>
       <div class="stat"><div class="v" id="statAvoidL">0,0 L</div><div class="k">Benzin vermieden</div></div>
@@ -294,7 +293,7 @@ small.foot{display:block;color:var(--sub);font-size:11px;margin-top:6px;}
     <div class="card">
       <label>Kilometer</label><input type="number" id="simKm" step="1" placeholder="z.B. 300">
       <label>Statt Auto mit</label>
-      <select id="simMode"><option value="ebike">🚲 E-Bike</option><option value="rad">🚴 Fahrrad</option></select>
+      <select id="simMode"><option value="ebike">🚲 E-Bike</option></select>
       <button class="btn secondary" onclick="runSim()">Simulieren</button>
       <div id="simResult"></div>
     </div>
@@ -467,13 +466,12 @@ function renderDashboard(){
   document.getElementById('dashCostTable').innerHTML=[1,10,50,100,500].map(km=>`<span>${km} km: <b style="color:var(--text)">${p?eur(ck*km):'–'}</b></span>`).join('');
   // Heute
   const todayStr=new Date().toISOString().slice(0,10);
-  let tAuto=0,tEbike=0,tRad=0,tSaved=0,tAny=false;
+  let tAuto=0,tEbike=0,tSaved=0,tAny=false;
   DATA.trips.forEach(tr=>{if(tr.date===todayStr){tAny=true;const c=tripCalc(tr);
-    if(tr.mode==='auto')tAuto+=tr.km; if(tr.mode==='ebike')tEbike+=tr.km; if(tr.mode==='rad')tRad+=tr.km; tSaved+=c.saved;}});
-  document.getElementById('dashToday').innerHTML=tAny?`<div class="grid2">
+    if(tr.mode==='auto')tAuto+=tr.km; if(tr.mode==='ebike')tEbike+=tr.km; tSaved+=c.saved;}});
+  document.getElementById('dashToday').innerHTML=tAny?`<div class="grid2" style="grid-template-columns:repeat(3,1fr)">
     <div class="stat"><div class="v">${num2(tAuto)}</div><div class="k">🚗 Auto km</div></div>
     <div class="stat"><div class="v">${num2(tEbike)}</div><div class="k">🚲 E-Bike km</div></div>
-    <div class="stat"><div class="v">${num2(tRad)}</div><div class="k">🚴 Fahrrad km</div></div>
     <div class="stat"><div class="v" style="color:var(--gold)">${eur(tSaved)}</div><div class="k">Gespart</div></div>
     </div>`:'<div class="hint">Heute noch keine Fahrten erfasst.</div>';
   // Monatsübersicht
@@ -664,7 +662,6 @@ function renderStat(){
   document.getElementById('statSaved').textContent=eur(saved);
   document.getElementById('statAutoKm').textContent=Math.round(autoKm);
   document.getElementById('statEbikeKm').textContent=Math.round(ebikeKm);
-  document.getElementById('statRadKm').textContent=Math.round(radKm);
   document.getElementById('statAvoidKm').textContent=Math.round(avoidKm);
   document.getElementById('statFuelCost').textContent=eur(fuelCost);
   document.getElementById('statAvoidL').textContent=num2(avoidL)+' L';
@@ -676,7 +673,7 @@ function renderStat(){
     const totalPotKm=autoKm+avoidKm;
     const quote=totalPotKm>0?(avoidKm/totalPotKm*100):0;
     extra+=`<div class="lbl" style="margin-top:10px">Sparquote (vermiedene Auto-km / gesamt mögliche km)</div><div class="big">${num2(quote)} %</div>`;
-    extra+=`<div class="lbl" style="margin-top:10px">Fahrten: 🚗 ${nAuto} · 🚲 ${nEbike} · 🚴 ${nRad}</div>`;
+    extra+=`<div class="lbl" style="margin-top:10px">Fahrten: 🚗 ${nAuto} · 🚲 ${nEbike}</div>`;
   }
   document.getElementById('statExtra').innerHTML=extra||'<div class="hint">Mehr Kennzahlen in Monats-/Jahresansicht.</div>';
   document.getElementById('statAvoidable').innerHTML=avoidableKm>0?`<div class="hint">Vermeidbare Auto-km: ${Math.round(avoidableKm)} km · Vermeidbare Benzinkosten: ${eur(avoidableCost)}</div>`:'<div class="hint">Keine als vermeidbar markierten Fahrten in diesem Zeitraum.</div>';
@@ -720,7 +717,7 @@ function runSim(){
   const ck=getCostPerKm(), cons=getConsumption().value;
   const saved=km*ck, avoidedL=km*cons/100;
   document.getElementById('simResult').innerHTML=`<div class="hint"><span class="badge sim">Simulation</span><br>
-  ${Math.round(km)} km mit ${mode==='ebike'?'E-Bike':'Fahrrad'} statt Auto:<br>
+  ${Math.round(km)} km mit E-Bike statt Auto:<br>
   Vermiedene Auto-km: ${Math.round(km)} km · Vermiedene Liter: ${num2(avoidedL)} L · Gesparte Benzinkosten: <b>${eur(saved)}</b><br>
   Dies ist keine tatsächlich erzielte Ersparnis, sondern eine Simulation.</div>`;
 }
