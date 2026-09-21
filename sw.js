@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'mb-tracker-v4';
+const CACHE_VERSION = 'mb-tracker-v5';
 const BASE = '/mercedes-fahrkosten/';
 const ASSETS = [
   BASE,
@@ -7,7 +7,8 @@ const ASSETS = [
   BASE + 'icon-192.svg',
   BASE + 'icon-512.svg',
   BASE + 'vehicle.webp',
-  BASE + 'vehicle.png'
+  BASE + 'vehicle.png',
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js'
 ];
 
 self.addEventListener('install', (e) => {
@@ -30,6 +31,11 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+  const url = e.request.url;
+  // Anfragen an die Supabase-Projekt-API (Auth/REST) niemals cachen oder aus dem
+  // Cache bedienen -- sonst würde die App bei fehlender Verbindung fälschlich
+  // veraltete Cloud-Daten als "aktuell" ansehen, statt sauber offline zu gehen.
+  if (url.includes('.supabase.co')) return;
   e.respondWith(
     caches.match(e.request).then((cached) => {
       const network = fetch(e.request)
